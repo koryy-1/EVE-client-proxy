@@ -12,9 +12,9 @@ namespace Application.Services
 {
     public class OverViewService
     {
-        private readonly Client _client;
+        private readonly GameClient _client;
 
-        public OverViewService(Client client)
+        public OverViewService(GameClient client)
         {
             _client = client;
             _client.SetNickname("Yavisha");

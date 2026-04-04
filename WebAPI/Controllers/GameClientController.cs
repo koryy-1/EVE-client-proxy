@@ -11,12 +11,12 @@ namespace WebAPI.Controllers
     public class GameClientController : ControllerBase
     {
         private readonly ILogger<GameClientController> _logger;
-        private readonly Client _client;
+        private readonly GameClient _client;
 
         // todo: когда игра выключена вылезает failed to find by hwnd и приходится все равно перезапускать проект
         public GameClientController(
             ILogger<GameClientController> logger,
-            Client client
+            GameClient client
         )
         {
             _logger = logger;

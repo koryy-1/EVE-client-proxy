@@ -10,9 +10,9 @@ namespace Application.Services
 {
     public class SelectItemService
     {
-        private readonly Client _client;
+        private readonly GameClient _client;
 
-        public SelectItemService(Client client)
+        public SelectItemService(GameClient client)
         {
             _client = client;
             _client.SetNickname("Yavisha");

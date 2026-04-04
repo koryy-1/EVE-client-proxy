@@ -12,10 +12,10 @@ namespace Application.StarshipSystems.Monitors
 {
     public class TargetMonitor
     {
-        private Client _client;
+        private GameClient _client;
         private BotBehavior _botBehavior;
 
-        public TargetMonitor(Client client, BotBehavior botBehavior)
+        public TargetMonitor(GameClient client, BotBehavior botBehavior)
         {
             _client = client;
             _botBehavior = botBehavior;

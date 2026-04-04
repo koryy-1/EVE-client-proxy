@@ -10,9 +10,9 @@ namespace Application.Services
 {
     public class InfoPanelService
     {
-        private readonly Client _client;
+        private readonly GameClient _client;
 
-        public InfoPanelService(Client client)
+        public InfoPanelService(GameClient client)
         {
             _client = client;
             _client.SetNickname("Yavisha");

@@ -14,13 +14,13 @@ namespace Application.StarshipSystems.Controllers
 {
     public class MissileController
     {
-        private Client _client;
+        private GameClient _client;
         private BotBehavior _botBehavior;
         private Weapon _weapon;
 
         int CountTimeFor0Amount = 0;
 
-        public MissileController(Client client, BotBehavior botBehavior, Weapon weapon)
+        public MissileController(GameClient client, BotBehavior botBehavior, Weapon weapon)
         {
             _client = client;
             _botBehavior = botBehavior;

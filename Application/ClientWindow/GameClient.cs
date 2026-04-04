@@ -4,7 +4,7 @@ using Domen.Models;
 
 namespace Application.ClientWindow
 {
-    public class Client
+    public class GameClient
     {
         public Parser Parser { get; private set; }
         public Emulators Emulators { get; private set; }
@@ -13,7 +13,7 @@ namespace Application.ClientWindow
 
         private string _nickname;
 
-        public Client()
+        public GameClient()
         {
             Status = new SearchingStatus();
         }

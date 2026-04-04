@@ -11,10 +11,10 @@ namespace Application.StarshipSystems.Monitors
 {
     public class ShipHPMonitor
     {
-        private Client _client;
+        private GameClient _client;
         private BotBehavior _botBehavior;
 
-        public ShipHPMonitor(Client client, BotBehavior botBehavior)
+        public ShipHPMonitor(GameClient client, BotBehavior botBehavior)
         {
             _client = client;
             _botBehavior = botBehavior;

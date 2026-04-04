@@ -10,9 +10,9 @@ namespace Application.Services
 {
     public class HudInterfaceService
     {
-        private readonly Client _client;
+        private readonly GameClient _client;
 
-        public HudInterfaceService(Client client)
+        public HudInterfaceService(GameClient client)
         {
             _client = client;
             _client.SetNickname("Yavisha");

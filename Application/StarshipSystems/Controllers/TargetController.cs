@@ -11,11 +11,11 @@ namespace Application.StarshipSystems.Controllers
 {
     public class TargetController
     {
-        private Client _client;
+        private GameClient _client;
         private BotBehavior _botBehavior;
         private Distance _weaponsRange;
 
-        public TargetController(Client client, BotBehavior botBehavior, int weaponsRange)
+        public TargetController(GameClient client, BotBehavior botBehavior, int weaponsRange)
         {
             _client = client;
             _botBehavior = botBehavior;

@@ -11,8 +11,8 @@ namespace Application.Services
 {
     public class DroneService
     {
-        private readonly Client _client;
-        public DroneService(Client client)
+        private readonly GameClient _client;
+        public DroneService(GameClient client)
         {
             _client = client;
             _client.SetNickname("Yavisha");

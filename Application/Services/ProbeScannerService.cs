@@ -10,9 +10,9 @@ namespace Application.Services
 {
     public class ProbeScannerService
     {
-        private readonly Client _client;
+        private readonly GameClient _client;
 
-        public ProbeScannerService(Client client)
+        public ProbeScannerService(GameClient client)
         {
             _client = client;
             _client.SetNickname("Yavisha");

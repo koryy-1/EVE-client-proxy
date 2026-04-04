@@ -10,9 +10,9 @@ namespace Application.Services
 {
     public class InventoryService
     {
-        private readonly Client _client;
+        private readonly GameClient _client;
 
-        public InventoryService(Client client)
+        public InventoryService(GameClient client)
         {
             _client = client;
             _client.SetNickname("Yavisha");

@@ -8,7 +8,7 @@ namespace Application
     {
         public static IServiceCollection AddServices(this IServiceCollection services)
         {
-            services.AddSingleton<Client>();
+            services.AddSingleton<GameClient>();
             services.AddSingleton<DroneService>();
             services.AddSingleton<HudInterfaceService>();
             services.AddSingleton<InfoPanelService>();
