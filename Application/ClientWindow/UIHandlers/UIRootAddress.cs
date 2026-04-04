@@ -21,6 +21,16 @@ namespace Application.ClientWindow.UIHandlers
             LogManager.Setup().LoadConfigurationFromFile("NLog.config");
         }
 
+        public static bool IsEveClientOpen(string nickname)
+        {
+            var hWnd = WinApi.FindWindow("trinityWindow", $"EVE - {nickname}");
+
+            if (hWnd.ToInt32() == 0)
+                return false;
+            else
+                return true;
+        }
+
         public static ClientParams PreInitClientParams(string nickname)
         {
             ClientParams clientParams = new ClientParams();
@@ -99,15 +109,9 @@ namespace Application.ClientWindow.UIHandlers
                 throw new Exception("failed to find root address by pid or HWND");
             }
 
-            //TODO: send new config of game to client part instead saving to file
-            //ConfigReader.UpdateConfig(nickName, clientParams);
-            //
-
             Log.Debug("new PID in file = {0}", clientParams.ProcessId);
             Log.Debug("new RootAddress in file = {0}", clientParams.RootAddress);
 
-            //TODO: rewrite return type of method
-            //return config
             return clientParams;
         }
 

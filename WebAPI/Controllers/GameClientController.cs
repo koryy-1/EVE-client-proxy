@@ -7,39 +7,51 @@ using System.Threading;
 namespace WebAPI.Controllers
 {
     [ApiController]
-    [Route("GameClient")]
+    [Route("api/[controller]")]
     public class GameClientController : ControllerBase
     {
         private readonly ILogger<GameClientController> _logger;
-        private static Client _client;
-
-        static GameClientController()
-        {
-            var nick = "Yavisha";
-            _client = Client.GetInstance(nick);
-        }
+        private readonly Client _client;
 
         // todo: когда игра выключена вылезает failed to find by hwnd и приходится все равно перезапускать проект
-        public GameClientController(ILogger<GameClientController> logger)
+        public GameClientController(
+            ILogger<GameClientController> logger,
+            Client client
+        )
         {
             _logger = logger;
+            _client = client;
         }
 
-        [HttpGet("GetClientParams", Name = "GetClientParams")]
+        [HttpPost("check-eve-client-open")]
+        public ActionResult<ClientParamsDto> IsEveClientOpen([FromBody] string nickname)
+        {
+            var isOpen = _client.IsEveClientOpen(nickname);
+            return Ok(isOpen);
+        }
+
+        [HttpPost("set-nickname")]
+        public ActionResult<ClientParamsDto> SetNickname([FromBody] string nickname)
+        {
+            _client.SetNickname(nickname);
+            return Ok(new { message = "Set nickname successfully" });
+        }
+
+        [HttpGet("get-client-params")]
         public ActionResult<ClientParamsDto> GetClientParams()
         {
             //todo: mapping
             return Ok(_client.ClientParams2Dto(_client.ClientParams));
         }
 
-        [HttpGet("GetStatus", Name = "GetStatus")]
+        [HttpGet("get-status")]
         public ActionResult<SearchingStatus> GetStatus()
         {
             _logger.LogDebug($"isActualRootAddress = {_client.Status.IsActualRootAddress}");
             return Ok(_client.Status);
         }
 
-        [HttpGet("CheckRootAddressActuality", Name = "CheckRootAddressActuality")]
+        [HttpGet("check-root-address-actuality")]
         public ActionResult<SearchingStatus> CheckRootAddressActuality()
         {
             var searchingStatus = _client.CheckRootAddressActuality();
@@ -47,7 +59,7 @@ namespace WebAPI.Controllers
             return Ok(searchingStatus);
         }
 
-        [HttpPost("UpdateClientParams", Name = "UpdateClientParams")]
+        [HttpPost("update-client-params")]
         public IActionResult UpdateClientParams([FromBody] ClientParamsDto clientParamsDto)
         {
             var clientParams = _client.Dto2ClientParams(clientParamsDto);
@@ -65,7 +77,7 @@ namespace WebAPI.Controllers
             }
         }
 
-        [HttpPost("StartSearch", Name = "StartSearch")]
+        [HttpPost("start-search")]
         public ActionResult<ClientParamsDto> StartSearch()
         {
             if (_client.IsActualRootAddress(_client.ClientParams))
@@ -75,7 +87,7 @@ namespace WebAPI.Controllers
 
             _logger.LogDebug("Search for root address started");
 
-            //async func
+            //async func via Task.run
             _client.StartSearchingRootAddress();
 
             _logger.LogDebug($"The root address search is over, new root address is {_client.ClientParams.RootAddress}");
@@ -83,7 +95,7 @@ namespace WebAPI.Controllers
             return Ok(_client.ClientParams2Dto(_client.ClientParams));
         }
 
-        [HttpPost("StopSearch", Name = "StopSearch")]
+        [HttpPost("stopsearch")]
         public IActionResult StopSearch()
         {
             _client.StopSearching();

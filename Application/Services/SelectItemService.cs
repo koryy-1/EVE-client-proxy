@@ -10,12 +10,12 @@ namespace Application.Services
 {
     public class SelectItemService
     {
-        private static Client _client;
+        private readonly Client _client;
 
-        public SelectItemService()
+        public SelectItemService(Client client)
         {
-            var nick = "Yavisha";
-            _client = Client.GetInstance(nick);
+            _client = client;
+            _client.SetNickname("Yavisha");
         }
 
         public SelectedItemInfo GetInfo()

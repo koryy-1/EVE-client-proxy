@@ -6,26 +6,29 @@ using Microsoft.AspNetCore.Mvc;
 namespace WebAPI.Controllers
 {
     [ApiController]
-    [Route("SelectedItem")]
+    [Route("api/[controller]")]
     public class SelectItemController : ControllerBase
     {
         private readonly ILogger<SelectItemController> _logger;
-        private SelectItemService _selectItemService;
+        private readonly SelectItemService _selectItemService;
 
-        public SelectItemController(ILogger<SelectItemController> logger)
+        public SelectItemController(
+            ILogger<SelectItemController> logger,
+            SelectItemService selectItemService
+        )
         {
             _logger = logger;
-            _selectItemService = new SelectItemService();
+            _selectItemService = selectItemService;
         }
 
-        [HttpGet("GetSelectItemInfo", Name = "GetSelectItemInfo")]
+        [HttpGet("get-select-item-info")]
         public ActionResult<SelectedItemInfo> GetSelectItemInfo()
         {
             var routePanel = _selectItemService.GetInfo();
             return Ok(routePanel);
         }
 
-        [HttpPost("ClickButton", Name = "ClickButton")]
+        [HttpPost("click-button")]
         public IActionResult ClickButton([FromBody] string btnName)
         {
             var success = _selectItemService.ClickButton(btnName);

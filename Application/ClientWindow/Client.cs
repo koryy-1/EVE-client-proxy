@@ -1,12 +1,6 @@
 ﻿using Application.ClientWindow.UIHandlers;
 using Domen.dto;
 using Domen.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Application.ClientWindow
 {
@@ -17,32 +11,23 @@ namespace Application.ClientWindow
         public ClientParams ClientParams { get; private set; }
         public SearchingStatus Status { get; private set; }
 
-        private string _nickName;
+        private string _nickname;
 
-        private static Client _instance;
-        private static readonly object _lock = new object();
-
-        public Client(string nickName)
+        public Client()
         {
-            _nickName = nickName;
-            ClientParams = PreInitClientParams();
-
             Status = new SearchingStatus();
         }
 
-        public static Client GetInstance(string nickName)
+        public void SetNickname(string nickname)
         {
-            if (_instance == null)
-            {
-                lock (_lock)
-                {
-                    if (_instance == null)
-                    {
-                        _instance = new Client(nickName);
-                    }
-                }
-            }
-            return _instance;
+            _nickname = nickname;
+            ClientParams = PreInitClientParams(nickname);
+            Status = new SearchingStatus();
+        }
+
+        public bool IsEveClientOpen(string nickname)
+        {
+            return UIRootAddress.IsEveClientOpen(nickname);
         }
 
         public SearchingStatus CheckRootAddressActuality()
@@ -87,7 +72,7 @@ namespace Application.ClientWindow
             }
 
             SetStatusStartSearching();
-            var newClientParams = UIRootAddress.UpdateRootAddress(_nickName);
+            var newClientParams = UIRootAddress.UpdateRootAddress(_nickname);
             SetStatusStopSearching();
 
             SetClientParams(newClientParams);
@@ -102,9 +87,9 @@ namespace Application.ClientWindow
         }
 
         // proc name / hwnd / pid
-        private ClientParams PreInitClientParams()
+        private ClientParams PreInitClientParams(string nickname)
         {
-            return UIRootAddress.PreInitClientParams(_nickName);
+            return UIRootAddress.PreInitClientParams(nickname);
         }
 
         public bool IsActualRootAddress(ClientParams clientParams)

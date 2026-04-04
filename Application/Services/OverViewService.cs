@@ -12,12 +12,12 @@ namespace Application.Services
 {
     public class OverViewService
     {
-        private static Client _client;
+        private readonly Client _client;
 
-        public OverViewService()
+        public OverViewService(Client client)
         {
-            var nick = "Yavisha";
-            _client = Client.GetInstance(nick);
+            _client = client;
+            _client.SetNickname("Yavisha");
         }
 
         public IEnumerable<OverviewItem> GetInfo()

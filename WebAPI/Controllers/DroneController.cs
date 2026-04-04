@@ -5,40 +5,43 @@ using Microsoft.AspNetCore.Mvc;
 namespace WebAPI.Controllers
 {
     [ApiController]
-    [Route("Drones")]
+    [Route("api/[controller]")]
     public class DroneController : ControllerBase
     {
         private readonly ILogger<DroneController> _logger;
-        private DroneService _droneService;
+        private readonly DroneService _droneService;
 
-        public DroneController(ILogger<DroneController> logger)
+        public DroneController(
+            ILogger<DroneController> logger,
+            DroneService droneService
+        )
         {
             _logger = logger;
-            _droneService = new DroneService();
+            _droneService = droneService;
         }
 
-        [HttpGet("GetDronesInfo", Name = "GetDronesInfo")]
+        [HttpGet("get-drones-info")]
         public ActionResult<IEnumerable<Drone>> GetDronesInfo()
         {
             var dronesInfo = _droneService.GetInfo();
             return Ok(dronesInfo);
         }
 
-        [HttpPost("Launch", Name = "Launch")]
+        [HttpPost("launch")]
         public IActionResult Launch()
         {
             _droneService.Launch();
             return Ok();
         }
 
-        [HttpPost("Engage", Name = "Engage")]
+        [HttpPost("engage")]
         public IActionResult Engage()
         {
             _droneService.Engage();
             return Ok();
         }
 
-        [HttpPost("Scoop", Name = "Scoop")]
+        [HttpPost("scoop")]
         public IActionResult Scoop()
         {
             _droneService.Scoop();

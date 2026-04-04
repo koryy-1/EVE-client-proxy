@@ -5,26 +5,29 @@ using Microsoft.AspNetCore.Mvc;
 namespace WebAPI.Controllers
 {
     [ApiController]
-    [Route("ProbeScanner")]
+    [Route("api/[controller]")]
     public class ProbeScannerController : ControllerBase
     {
         private readonly ILogger<ProbeScannerController> _logger;
-        private ProbeScannerService _probeScannerService;
+        private readonly ProbeScannerService _probeScannerService;
 
-        public ProbeScannerController(ILogger<ProbeScannerController> logger)
+        public ProbeScannerController(
+            ILogger<ProbeScannerController> logger,
+            ProbeScannerService probeScannerService
+        )
         {
             _logger = logger;
-            _probeScannerService = new ProbeScannerService();
+            _probeScannerService = probeScannerService;
         }
 
-        [HttpGet("GetProbeScanResults", Name = "GetProbeScanResults")]
+        [HttpGet("get-probe-scan-results")]
         public ActionResult<IEnumerable<ProbeScanItem>> GetProbeScanResults()
         {
             var overViewInfo = _probeScannerService.GetInfo();
             return Ok(overViewInfo);
         }
 
-        [HttpPost("WarpToAnomaly", Name = "WarpToAnomaly")]
+        [HttpPost("warp-to-anomaly")]
         public IActionResult WarpToAnomaly([FromBody] ProbeScanItem probeScanItem)
         {
             _probeScannerService.WarpToAnomaly(probeScanItem);

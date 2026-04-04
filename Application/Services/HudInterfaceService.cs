@@ -10,12 +10,12 @@ namespace Application.Services
 {
     public class HudInterfaceService
     {
-        private static Client _client;
+        private readonly Client _client;
 
-        public HudInterfaceService()
+        public HudInterfaceService(Client client)
         {
-            var nick = "Yavisha";
-            _client = Client.GetInstance(nick);
+            _client = client;
+            _client.SetNickname("Yavisha");
         }
 
         public HudInterface GetInfo()

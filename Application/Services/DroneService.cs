@@ -11,11 +11,11 @@ namespace Application.Services
 {
     public class DroneService
     {
-        private static Client _client;
-        public DroneService()
+        private readonly Client _client;
+        public DroneService(Client client)
         {
-            var nick = "Yavisha";
-            _client = Client.GetInstance(nick);
+            _client = client;
+            _client.SetNickname("Yavisha");
         }
 
         public void Launch()

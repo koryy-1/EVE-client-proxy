@@ -8,26 +8,29 @@ using NLog.Targets;
 namespace WebAPI.Controllers
 {
     [ApiController]
-    [Route("OverView")]
+    [Route("api/[controller]")]
     public class OverViewController : ControllerBase
     {
         private readonly ILogger<OverViewController> _logger;
-        private OverViewService _overViewService;
+        private readonly OverViewService _overViewService;
 
-        public OverViewController(ILogger<OverViewController> logger)
+        public OverViewController(
+            ILogger<OverViewController> logger,
+            OverViewService overViewService
+        )
         {
             _logger = logger;
-            _overViewService = new OverViewService();
+            _overViewService = overViewService;
         }
 
-        [HttpGet("GetOverViewInfo", Name = "GetOverViewInfo")]
+        [HttpGet("get-overview-info")]
         public ActionResult<IEnumerable<OverviewItem>> GetOverViewInfo()
         {
             var overViewInfo = _overViewService.GetInfo();
             return Ok(overViewInfo);
         }
 
-        [HttpPost("ClickOnObject", Name = "ClickOnObject")]
+        [HttpPost("click-on-object")]
         public IActionResult ClickOnObject([FromBody] OverviewItem spaceObject)
         {
             _overViewService.ClickOnObject(spaceObject);
@@ -35,7 +38,7 @@ namespace WebAPI.Controllers
             return Ok(new { message = "space object clicked" });
         }
 
-        [HttpPost("LockTargets", Name = "LockTargets")]
+        [HttpPost("lock-targets")]
         public IActionResult LockTargets([FromBody] IEnumerable<OverviewItem> targets)
         {
             _overViewService.LockTargets(targets);
@@ -43,7 +46,7 @@ namespace WebAPI.Controllers
             return Ok(new { message = "targets locked" });
         }
 
-        [HttpPost("LockTargetByName", Name = "LockTargetByName")]
+        [HttpPost("lock-target-by-name")]
         public IActionResult LockTargetByName([FromBody] string targetName)
         {
             _overViewService.LockTargetByName(targetName);

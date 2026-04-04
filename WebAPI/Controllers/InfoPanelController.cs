@@ -5,26 +5,29 @@ using Microsoft.AspNetCore.Mvc;
 namespace WebAPI.Controllers
 {
     [ApiController]
-    [Route("InfoPanel")]
+    [Route("api/[controller]")]
     public class InfoPanelController : ControllerBase
     {
         private readonly ILogger<InfoPanelController> _logger;
-        private InfoPanelService _infoPanelService;
+        private readonly InfoPanelService _infoPanelService;
 
-        public InfoPanelController(ILogger<InfoPanelController> logger)
+        public InfoPanelController(
+            ILogger<InfoPanelController> logger,
+            InfoPanelService infoPanelService
+        )
         {
             _logger = logger;
-            _infoPanelService = new InfoPanelService();
+            _infoPanelService = infoPanelService;
         }
 
-        [HttpGet("GetRoutePanel", Name = "GetRoutePanel")]
+        [HttpGet("get-route-panel")]
         public ActionResult<RoutePanel> GetRoutePanel()
         {
             var routePanel = _infoPanelService.GetRoutePanel();
             return Ok(routePanel);
         }
 
-        [HttpGet("GetLocation", Name = "GetLocation")]
+        [HttpGet("get-location")]
         public ActionResult<LocationInfo> GetLocation()
         {
             var location = _infoPanelService.GetLocation();
