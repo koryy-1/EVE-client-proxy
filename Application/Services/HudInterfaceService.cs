@@ -49,7 +49,7 @@ namespace Application.Services
             return _client.Parser.HI.GetCenterPos();
         }
 
-        public void ShipStop()
+        public bool ShipStop()
         {
             var centerPos = _client.Parser.HI.GetCenterPos();
             var stopPos = new Point
@@ -58,9 +58,10 @@ namespace Application.Services
                 y = centerPos.y + 33,
             };
             _client.Emulators.ClickLB(stopPos);
+            return true;
         }
 
-        public void SetFullSpeed()
+        public bool SetFullSpeed()
         {
             var centerPos = _client.Parser.HI.GetCenterPos();
             var fullSpeedPos = new Point
@@ -69,16 +70,18 @@ namespace Application.Services
                 y = centerPos.y + 33,
             };
             _client.Emulators.ClickLB(fullSpeedPos);
+            return true;
         }
 
-        public void ToggleActivationModule(string moduleName)
+        public bool ToggleActivationModule(string moduleName)
         {
             var module = _client.Parser.HI.GetAllModulesInfo()
                 .Find(item => item.Name.ToString() == moduleName);
             if (module == null)
-                return;
+                return false;
 
             _client.Emulators.Keyboard.PressButton(module.VirtualKey);
+            return true;
         }
     }
 }

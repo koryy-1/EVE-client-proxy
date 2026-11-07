@@ -9,13 +9,13 @@ namespace Infrastructure.WsConnecting
     {
         private ClientWebSocket _socket;
         private CancellationTokenSource _cts;
-        private readonly DroneService _droneService;
+        private readonly HandlerRegistry _handlerRegistry;
 
-        public WsClient(DroneService droneService)
+        public WsClient(HandlerRegistry handlerRegistry)
         {
             _socket = new();
             _cts = new();
-            _droneService = droneService;
+            _handlerRegistry = handlerRegistry;
         }
 
         public bool IsConnected()
@@ -102,15 +102,9 @@ namespace Infrastructure.WsConnecting
             // todo: use model?
             var type = doc.RootElement.GetProperty("type").GetString();
             var requestId = doc.RootElement.GetProperty("requestId").GetString();
+            var payload = doc.RootElement.GetProperty("payload");
 
-            object result = type switch
-            {
-                "GameClient.GetClientParams" => GetClientParams(),
-                "GameClient.GetStatus" => GetStatus(),
-                "GameClient.StartSearch" => StartSearch(),
-                "GameClient.StopSearch" => StopSearch(),
-                _ => throw new Exception($"Unknown method {type}")
-            };
+            var result = await _handlerRegistry.Invoke(type, payload);
 
             var response = new
             {

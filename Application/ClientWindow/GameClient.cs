@@ -1,5 +1,6 @@
 ﻿using Application.ClientWindow.UIHandlers;
 using Domen.dto;
+using Domen.Enums;
 using Domen.Models;
 
 namespace Application.ClientWindow
@@ -9,20 +10,24 @@ namespace Application.ClientWindow
         public Parser Parser { get; private set; }
         public Emulators Emulators { get; private set; }
         public ClientParams ClientParams { get; private set; }
-        public SearchingStatus Status { get; private set; }
+        public SearchingStatus SearchingStatus { get; private set; }
+
+        private Task _searchTask;
+        private CancellationTokenSource _cts;
 
         private string _nickname;
 
         public GameClient()
         {
-            Status = new SearchingStatus();
+            ClientParams = new();
         }
 
-        public void SetNickname(string nickname)
+        public bool SetNickname(string nickname)
         {
             _nickname = nickname;
-            ClientParams = PreInitClientParams(nickname);
-            Status = new SearchingStatus();
+            // ClientParams = PreInitClientParams(nickname);
+            SearchingStatus = SearchingStatus.Idle;
+            return true;
         }
 
         public bool IsEveClientOpen(string nickname)
@@ -30,20 +35,9 @@ namespace Application.ClientWindow
             return UIRootAddress.IsEveClientOpen(nickname);
         }
 
-        public SearchingStatus CheckRootAddressActuality()
+        public bool CheckRootAddressActuality()
         {
-            var isActual = IsActualRootAddress(ClientParams);
-            if (isActual)
-            {
-                Status.IsActualRootAddress = true;
-                return Status;
-            }
-            else
-            {
-                // както запретить использование Parsers и Emulators
-                Status.IsActualRootAddress = false;
-                return Status;
-            }
+            return IsActualRootAddress(ClientParams);
         }
 
         /// <summary>
@@ -64,26 +58,60 @@ namespace Application.ClientWindow
             return true;
         }
 
-        public void StartSearchingRootAddress()
+        public TaskStatus GetSearchTaskStatus()
         {
-            if (IsActualRootAddress(ClientParams))
-            {
-                return;
-            }
-
-            SetStatusStartSearching();
-            var newClientParams = UIRootAddress.UpdateRootAddress(_nickname);
-            SetStatusStopSearching();
-
-            SetClientParams(newClientParams);
+            if (_searchTask == null)
+                throw new Exception("searchTask has not yet been created");
+            return _searchTask.Status;
         }
 
-        public void StopSearching()
+        public bool StartSearchingRootAddress()
         {
-            // Логика для остановки поиска рут адреса
-            // concelationToken.RequestCancell
-            SetStatusInterruptSearching();
-            throw new NotImplementedException();
+            if (SearchingStatus == SearchingStatus.Running)
+                return false;
+
+            if (_searchTask != null && !_searchTask.IsCompleted)
+                return false;
+
+            if (IsActualRootAddress(ClientParams))
+                return false;
+
+            _cts = new CancellationTokenSource();
+
+            SearchingStatus = SearchingStatus.Running;
+
+            _searchTask = Task.Run(() => SearchLoop(_cts.Token));
+
+            return true;
+        }
+
+        public void SearchLoop(CancellationToken token)
+        {
+            try
+            {
+                var newClientParams = UIRootAddress.UpdateRootAddress(_nickname, token);
+
+                if (token.IsCancellationRequested)
+                    return;
+
+                SetClientParams(newClientParams);
+                SearchingStatus = SearchingStatus.Completed;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error occured while searching: {ex.Message}");
+                SearchingStatus = SearchingStatus.Failed;
+            }
+        }
+
+        public bool StopSearching()
+        {
+            if (SearchingStatus != SearchingStatus.Running)
+                return false;
+
+            _cts.Cancel();
+            SearchingStatus = SearchingStatus.Interrupted;
+            return true;
         }
 
         // proc name / hwnd / pid
@@ -95,24 +123,6 @@ namespace Application.ClientWindow
         public bool IsActualRootAddress(ClientParams clientParams)
         {
             return UIRootAddress.IsActualRootAddress(clientParams);
-        }
-
-        private void SetStatusStartSearching()
-        {
-            Status.IsSearching = true;
-            Status.IsActualRootAddress = false;
-        }
-
-        private void SetStatusStopSearching()
-        {
-            Status.IsSearching = false;
-            Status.IsActualRootAddress = true;
-        }
-
-        private void SetStatusInterruptSearching()
-        {
-            Status.IsSearching = false;
-            Status.IsActualRootAddress = false;
         }
 
         //todo: mapping

@@ -12,9 +12,9 @@ namespace Application.ClientWindow.Parsers
         {
             if (WindowName == null)
             {
-                return ReadMemory.GetUITrees(clientProcess.RootAddress, clientProcess.ProcessId);
+                return ReadMemory.GetUITrees(clientProcess.RootAddress, clientProcess.ProcessId, new CancellationToken());
             }
-            var UnfinishedUITree = ReadMemory.GetUITrees(clientProcess.RootAddress, clientProcess.ProcessId, initialDepth);
+            var UnfinishedUITree = ReadMemory.GetUITrees(clientProcess.RootAddress, clientProcess.ProcessId, new CancellationToken(), initialDepth);
 
             var UnfinishedWindowTree = UnfinishedUITree.FindEntityOfString(WindowName);
             if (UnfinishedWindowTree == null)
@@ -35,7 +35,7 @@ namespace Application.ClientWindow.Parsers
             }
 
 
-            var WindowUITree = ReadMemory.GetUITrees(WindowAddress, clientProcess.ProcessId);
+            var WindowUITree = ReadMemory.GetUITrees(WindowAddress, clientProcess.ProcessId, new CancellationToken());
 
             return WindowUITree;
         }

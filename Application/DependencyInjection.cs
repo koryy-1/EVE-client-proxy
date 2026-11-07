@@ -16,6 +16,7 @@ namespace Application
             services.AddSingleton<OverViewService>();
             services.AddSingleton<ProbeScannerService>();
             services.AddSingleton<SelectItemService>();
+            services.AddSingleton<HandlerRegistry>();
 
             return services;
         }

@@ -47,7 +47,5 @@ namespace WebAPI.Controllers
             _droneService.Scoop();
             return Ok();
         }
-
-        //todo: make method launch / engage / return concrete drone
     }
 }

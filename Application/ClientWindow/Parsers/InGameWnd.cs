@@ -195,7 +195,7 @@ namespace Application.ClientWindow.Parsers
 
         private UITreeNode FindUiTree(ClientParams clientProcess, string windowName)
         {
-            var notHandledEntity = ReadMemory.GetUITrees(clientProcess.RootAddress, clientProcess.ProcessId)
+            var notHandledEntity = ReadMemory.GetUITrees(clientProcess.RootAddress, clientProcess.ProcessId, new CancellationToken())
                 .FindEntityOfString(windowName);
             if (notHandledEntity == null)
             {

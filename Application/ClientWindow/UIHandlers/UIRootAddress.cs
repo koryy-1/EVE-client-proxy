@@ -39,10 +39,9 @@ namespace Application.ClientWindow.UIHandlers
 
             if (clientParams.hWnd.ToInt32() == 0)
             {
-                // todo: feedback to client side - "failed to find HWND by window name, please check nickname of your person"
-                Log.Error("failed to find HWND by window name");
+                Log.Error("failed to find HWND by window name, check nickname or if game is open");
 
-                throw new Exception("failed to find HWND by window name");
+                throw new Exception("failed to find HWND by window name, check nickname or if game is open");
             }
 
             uint uintprocessId = 0;
@@ -65,8 +64,7 @@ namespace Application.ClientWindow.UIHandlers
 
             if (hWnd.ToInt32() == 0)
             {
-                // todo: feedback to client side - "failed to find HWND by window name, please check nickname of your person"
-                throw new Exception("failed to find HWND by window name");
+                throw new Exception("failed to find HWND by window name, check nickname or if game is open");
             }
 
             uint uintprocessId = 0;
@@ -82,7 +80,7 @@ namespace Application.ClientWindow.UIHandlers
             return true;
         }
 
-        public static ClientParams UpdateRootAddress(string nickname)
+        public static ClientParams UpdateRootAddress(string nickname, CancellationToken token)
         {
             ClientParams clientParams = new ClientParams();
             clientParams.ProcessName = $"EVE - {nickname}";
@@ -90,9 +88,8 @@ namespace Application.ClientWindow.UIHandlers
 
             if (clientParams.hWnd.ToInt32() == 0)
             {
-                // todo: messageBox - failed to find HWND by window name, please check nickname of your person
-                Log.Error("failed to find HWND by window name");
-                throw new Exception("failed to find HWND by window name");
+                Log.Error("failed to find HWND by window name, check nickname or if game is open");
+                throw new Exception("failed to find HWND by window name, check nickname or if game is open");
             }
 
             uint uintprocessId = 0;
@@ -101,7 +98,7 @@ namespace Application.ClientWindow.UIHandlers
             Log.Debug("please wait...");
 
             clientParams.ProcessId = Convert.ToInt32(uintprocessId);
-            clientParams.RootAddress = getUIRootAddressByProcessName(clientParams.ProcessId);
+            clientParams.RootAddress = getUIRootAddressByProcessName(clientParams.ProcessId, token);
 
             if (string.IsNullOrEmpty(clientParams.RootAddress))
             {
@@ -115,14 +112,14 @@ namespace Application.ClientWindow.UIHandlers
             return clientParams;
         }
 
-        private static string getUIRootAddressByProcessName(int processId)
+        private static string getUIRootAddressByProcessName(int processId, CancellationToken token)
         {
 
-            var (uiRootCandidatesAddresses, memoryReader) = ReadMemory.GetRootAddressesAndMemoryReader(string.Empty, processId);
+            var (uiRootCandidatesAddresses, memoryReader) = ReadMemory.GetRootAddressesAndMemoryReader(string.Empty, processId, token);
 
             IImmutableList<UITreeNode> ReadUITrees() =>
                     uiRootCandidatesAddresses
-                    .Select(uiTreeRoot => EveOnline64.ReadUITreeFromAddress(uiTreeRoot, memoryReader, 99))
+                    .Select(uiTreeRoot => EveOnline64.ReadUITreeFromAddress(uiTreeRoot, memoryReader, 99, token))
                     .Where(uiTree => uiTree != null)
                     .ToImmutableList();
 

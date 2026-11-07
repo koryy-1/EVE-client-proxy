@@ -23,9 +23,10 @@ namespace Application.Services
             return _client.Parser.PS.GetInfo();
         }
 
-        public void WarpToAnomaly(ProbeScanItem probeScanItem)
+        public bool WarpToAnomaly(ProbeScanItem probeScanItem)
         {
             _client.Emulators.ClickLB(probeScanItem.Pos);
+            return true;
         }
     }
 }

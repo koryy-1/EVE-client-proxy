@@ -32,10 +32,11 @@ namespace Application.Services
             return false;
         }
 
-        public void LootAll()
+        public bool LootAll()
         {
             var btnPos = _client.Parser.Invent.GetLootAllBtnPos();
             _client.Emulators.ClickLB(btnPos);
+            return true;
         }
 
         public void StackAll()

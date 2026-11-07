@@ -25,23 +25,26 @@ namespace Application.Services
             return _client.Parser.OV.GetInfo();
         }
 
-        public void ClickOnObject(OverviewItem spaceObject)
+        public bool ClickOnObject(OverviewItem spaceObject)
         {
             _client.Emulators.ClickLB(spaceObject.Pos);
+            return true;
         }
 
-        public void LockTargetByName(string targetName)
+        public bool LockTargetByName(string targetName)
         {
             var target = _client.Parser.OV.GetInfo().Find(item => item.Name == targetName);
             if (target == null)
-                return;
+                return false;
 
             _client.Emulators.ClickLB(target.Pos);
+            return true;
         }
 
-        public void LockTargets(IEnumerable<OverviewItem> targets)
+        public bool LockTargets(IEnumerable<OverviewItem> targets)
         {
             _client.Emulators.LockTargets(targets);
+            return true;
         }
     }
 }

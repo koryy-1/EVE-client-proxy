@@ -18,24 +18,29 @@ namespace Application.Services
             _client.SetNickname("Yavisha");
         }
 
-        public void Launch()
+        public bool Launch()
         {
             _client.Emulators.Keyboard.PressButton((int)WinApi.VirtualKeyShort.VK_G);
+            return true;
         }
 
-        public void Engage()
+        public bool Engage()
         {
             _client.Emulators.Keyboard.PressButton((int)WinApi.VirtualKeyShort.VK_F);
+            return true;
         }
 
-        public void Scoop()
+        public bool Scoop()
         {
             _client.Emulators.Keyboard.PressButton((int)WinApi.VirtualKeyShort.VK_H);
+            return true;
         }
 
         public IEnumerable<Drone> GetInfo()
         {
             return _client.Parser.Drones.GetInfo();
         }
+
+        //todo: make method launch / engage / return for concrete drone
     }
 }

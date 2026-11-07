@@ -9,18 +9,18 @@ namespace Application.ClientWindow.UIHandlers
 {
     public class EveOnline64
     {
-        static public IImmutableList<ulong> EnumeratePossibleAddressesForUIRootObjectsFromProcessId(int processId)
+        static public IImmutableList<ulong> EnumeratePossibleAddressesForUIRootObjectsFromProcessId(int processId, CancellationToken token)
         {
             var memoryReader = new MemoryReaderFromLiveProcess(processId);
 
-            var (committedMemoryRegions, _) = ReadCommittedMemoryRegionsWithoutContentFromProcessId(processId);
+            var (committedMemoryRegions, _) = ReadCommittedMemoryRegionsWithoutContentFromProcessId(processId, token);
 
             return EnumeratePossibleAddressesForUIRootObjects(committedMemoryRegions, memoryReader);
         }
 
-        static public (IImmutableList<(ulong baseAddress, byte[] content)> memoryRegions, IImmutableList<string> logEntries) ReadCommittedMemoryRegionsWithContentFromProcessId(int processId)
+        static public (IImmutableList<(ulong baseAddress, byte[] content)> memoryRegions, IImmutableList<string> logEntries) ReadCommittedMemoryRegionsWithContentFromProcessId(int processId, CancellationToken token)
         {
-            var genericResult = ReadCommittedMemoryRegionsFromProcessId(processId, readContent: true);
+            var genericResult = ReadCommittedMemoryRegionsFromProcessId(processId, readContent: true, token);
 
             var memoryRegions =
                 genericResult.memoryRegions
@@ -30,9 +30,11 @@ namespace Application.ClientWindow.UIHandlers
             return (memoryRegions, genericResult.logEntries);
         }
 
-        static public (IImmutableList<(ulong baseAddress, ulong length)> memoryRegions, IImmutableList<string> logEntries) ReadCommittedMemoryRegionsWithoutContentFromProcessId(int processId)
+        static public (IImmutableList<(ulong baseAddress, ulong length)> memoryRegions, IImmutableList<string> logEntries) ReadCommittedMemoryRegionsWithoutContentFromProcessId(
+            int processId,
+            CancellationToken token)
         {
-            var genericResult = ReadCommittedMemoryRegionsFromProcessId(processId, readContent: false);
+            var genericResult = ReadCommittedMemoryRegionsFromProcessId(processId, readContent: false, token);
 
             var memoryRegions =
                 genericResult.memoryRegions
@@ -44,7 +46,8 @@ namespace Application.ClientWindow.UIHandlers
 
         static public (IImmutableList<(ulong baseAddress, ulong length, byte[] content)> memoryRegions, IImmutableList<string> logEntries) ReadCommittedMemoryRegionsFromProcessId(
             int processId,
-            bool readContent)
+            bool readContent,
+            CancellationToken token)
         {
             var logEntries = new List<string>();
 
@@ -108,6 +111,9 @@ namespace Application.ClientWindow.UIHandlers
                 }
 
                 committedRegions.Add((baseAddress: regionBaseAddress, length: m.RegionSize, content: regionContent));
+
+                if (token.IsCancellationRequested)
+                    break;
 
             } while (true);
 
@@ -486,14 +492,17 @@ namespace Application.ClientWindow.UIHandlers
             }
         }
 
-        static public UITreeNode ReadUITreeFromAddress(ulong nodeAddress, IMemoryReader memoryReader, int maxDepth) =>
-            ReadUITreeFromAddress(nodeAddress, memoryReader, maxDepth, null);
+        static public UITreeNode ReadUITreeFromAddress(ulong nodeAddress, IMemoryReader memoryReader, int maxDepth, CancellationToken token) =>
+            ReadUITreeFromAddress(nodeAddress, memoryReader, maxDepth, null, token);
 
-        static UITreeNode ReadUITreeFromAddress(ulong nodeAddress, IMemoryReader memoryReader, int maxDepth, MemoryReadingCache cache)
+        static UITreeNode ReadUITreeFromAddress(ulong nodeAddress, IMemoryReader memoryReader, int maxDepth, MemoryReadingCache cache, CancellationToken token)
         {
             cache = cache ?? new MemoryReadingCache();
 
             var uiNodeObjectMemory = memoryReader.ReadBytes(nodeAddress, 0x30);
+
+            if (token.IsCancellationRequested)
+                return null;
 
             if (!(0x30 == uiNodeObjectMemory?.Length))
                 return null;
@@ -588,6 +597,9 @@ namespace Application.ClientWindow.UIHandlers
 
                 for (var slotIndex = 0; slotIndex < numberOfSlots; ++slotIndex)
                 {
+                    if (token.IsCancellationRequested)
+                        break;
+
                     var hash = slotsMemoryAsLongArray[slotIndex * 3];
                     var key = slotsMemoryAsLongArray[slotIndex * 3 + 1];
                     var value = slotsMemoryAsLongArray[slotIndex * 3 + 2];
@@ -667,6 +679,9 @@ namespace Application.ClientWindow.UIHandlers
 
             foreach (var dictionaryEntry in dictionaryEntries)
             {
+                if (token.IsCancellationRequested)
+                    break;
+
                 var keyObject_type_name = getPythonTypeNameFromPythonObjectAddress(dictionaryEntry.key);
 
                 //  Console.WriteLine($"Dict entry type name is '{keyObject_type_name}'");
@@ -702,6 +717,9 @@ namespace Application.ClientWindow.UIHandlers
 
             UITreeNode[] ReadChildren()
             {
+                if (token.IsCancellationRequested)
+                    return null;
+
                 if (maxDepth < 1)
                     return null;
 
@@ -785,7 +803,7 @@ namespace Application.ClientWindow.UIHandlers
 
                 return
                      listEntries
-                     .Select(childAddress => ReadUITreeFromAddress(childAddress, memoryReader, maxDepth - 1, cache))
+                     .Select(childAddress => ReadUITreeFromAddress(childAddress, memoryReader, maxDepth - 1, cache, token))
                      .ToArray();
             }
 
@@ -1399,7 +1417,7 @@ namespace Application.ClientWindow.UIHandlers
     {
         static readonly object _locker = new object();
 
-        public static (IImmutableList<ulong>, IMemoryReader) GetRootAddressesAndMemoryReader(string RootAddress, int processId)
+        public static (IImmutableList<ulong>, IMemoryReader) GetRootAddressesAndMemoryReader(string RootAddress, int processId, CancellationToken token)
         {
             lock (_locker)
             {
@@ -1413,7 +1431,7 @@ namespace Application.ClientWindow.UIHandlers
                     return (ImmutableList.Create(ParseULong(RootAddress)), new MemoryReaderFromLiveProcess(processId));
                 }
 
-                var (committedRegions, logEntries) = EveOnline64.ReadCommittedMemoryRegionsWithContentFromProcessId(processId);
+                var (committedRegions, logEntries) = EveOnline64.ReadCommittedMemoryRegionsWithContentFromProcessId(processId, token);
 
                 //Console.WriteLine($"Reading from process sample {processSampleId}.");
 
@@ -1440,13 +1458,13 @@ namespace Application.ClientWindow.UIHandlers
             }
         }
 
-        public static UITreeNode GetUITrees(string RootAddress, int processId, int maxDepth = 99)
+        public static UITreeNode GetUITrees(string RootAddress, int processId, CancellationToken token, int maxDepth = 99)
         {
-            var (uiRootCandidatesAddresses, memoryReader) = GetRootAddressesAndMemoryReader(RootAddress, processId);
+            var (uiRootCandidatesAddresses, memoryReader) = GetRootAddressesAndMemoryReader(RootAddress, processId, token);
 
             IImmutableList<UITreeNode> ReadUITrees() =>
                     uiRootCandidatesAddresses
-                    .Select(uiTreeRoot => EveOnline64.ReadUITreeFromAddress(uiTreeRoot, memoryReader, maxDepth))
+                    .Select(uiTreeRoot => EveOnline64.ReadUITreeFromAddress(uiTreeRoot, memoryReader, maxDepth, token))
                     .Where(uiTree => uiTree != null)
                     .ToImmutableList();
 

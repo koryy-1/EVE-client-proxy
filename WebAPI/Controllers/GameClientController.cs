@@ -3,6 +3,7 @@ using Domen.dto;
 using Microsoft.AspNetCore.Mvc;
 using Domen.Models;
 using System.Threading;
+using Domen.Enums;
 
 namespace WebAPI.Controllers
 {
@@ -13,7 +14,6 @@ namespace WebAPI.Controllers
         private readonly ILogger<GameClientController> _logger;
         private readonly GameClient _client;
 
-        // todo: когда игра выключена вылезает failed to find by hwnd и приходится все равно перезапускать проект
         public GameClientController(
             ILogger<GameClientController> logger,
             GameClient client
@@ -44,19 +44,27 @@ namespace WebAPI.Controllers
             return Ok(_client.ClientParams2Dto(_client.ClientParams));
         }
 
-        [HttpGet("get-status")]
-        public ActionResult<SearchingStatus> GetStatus()
+        [HttpGet("get-searching-status")]
+        public ActionResult<SearchingStatus> GetSearchingStatus()
         {
-            _logger.LogDebug($"isActualRootAddress = {_client.Status.IsActualRootAddress}");
-            return Ok(_client.Status);
+            _logger.LogDebug($"SearchingStatus = {_client.SearchingStatus}");
+            return Ok(_client.SearchingStatus);
+        }
+
+        [HttpGet("get-search-task-status")]
+        public ActionResult<SearchingStatus> GetSearchTaskStatus()
+        {
+            var searchTaskStatus = _client.GetSearchTaskStatus();
+            _logger.LogDebug($"SearchTaskStatus = {searchTaskStatus}");
+            return Ok(searchTaskStatus);
         }
 
         [HttpGet("check-root-address-actuality")]
         public ActionResult<SearchingStatus> CheckRootAddressActuality()
         {
-            var searchingStatus = _client.CheckRootAddressActuality();
-            _logger.LogDebug($"isActualRootAddress = {searchingStatus.IsActualRootAddress}");
-            return Ok(searchingStatus);
+            var isActualRootAddress = _client.CheckRootAddressActuality();
+            _logger.LogDebug($"isActualRootAddress = {isActualRootAddress}");
+            return Ok(isActualRootAddress);
         }
 
         [HttpPost("update-client-params")]
@@ -87,7 +95,6 @@ namespace WebAPI.Controllers
 
             _logger.LogDebug("Search for root address started");
 
-            //async func via Task.run
             _client.StartSearchingRootAddress();
 
             _logger.LogDebug($"The root address search is over, new root address is {_client.ClientParams.RootAddress}");
