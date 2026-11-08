@@ -10,6 +10,8 @@ namespace Infrastructure.WsConnecting
         private ClientWebSocket _socket;
         private CancellationTokenSource _cts;
         private readonly HandlerRegistry _handlerRegistry;
+        private readonly SemaphoreSlim _sendLock = new(1, 1);
+        private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
         public WsClient(HandlerRegistry handlerRegistry)
         {
@@ -42,7 +44,7 @@ namespace Infrastructure.WsConnecting
 
                 if (_socket.State == WebSocketState.Open)
                 {
-                    await _socket.CloseAsync(
+                    await _socket.CloseOutputAsync(
                         WebSocketCloseStatus.NormalClosure,
                         "Disconnect",
                         CancellationToken.None);
@@ -58,7 +60,15 @@ namespace Infrastructure.WsConnecting
         public async Task SendAsync(string message)
         {
             var bytes = Encoding.UTF8.GetBytes(message);
-            await _socket.SendAsync(bytes, WebSocketMessageType.Text, true, _cts.Token);
+            await _sendLock.WaitAsync(_cts.Token);
+            try
+            {
+                await _socket.SendAsync(bytes, WebSocketMessageType.Text, true, _cts.Token);
+            }
+            finally
+            {
+                _sendLock.Release();
+            }
         }
 
         private async Task ReceiveLoop()
@@ -69,12 +79,25 @@ namespace Infrastructure.WsConnecting
             {
                 while (_socket.State == WebSocketState.Open)
                 {
-                    var result = await _socket.ReceiveAsync(buffer, _cts.Token);
+                    using var messageBuffer = new MemoryStream();
+                    WebSocketReceiveResult result;
+                    do
+                    {
+                        result = await _socket.ReceiveAsync(buffer, _cts.Token);
+                        if (result.MessageType == WebSocketMessageType.Close)
+                            break;
+
+                        messageBuffer.Write(buffer, 0, result.Count);
+                    }
+                    while (!result.EndOfMessage);
 
                     if (result.MessageType == WebSocketMessageType.Close)
                         break;
 
-                    var json = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                    if (result.MessageType != WebSocketMessageType.Text)
+                        continue;
+
+                    var json = Encoding.UTF8.GetString(messageBuffer.ToArray());
 
                     await HandleMessage(json);
                 }
@@ -97,23 +120,34 @@ namespace Infrastructure.WsConnecting
 
         private async Task HandleMessage(string json)
         {
-            var doc = JsonDocument.Parse(json);
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+            var type = root.GetProperty("type").GetString();
+            var requestId = root.GetProperty("requestId").GetString();
+            var payload = root.TryGetProperty("payload", out var requestPayload)
+                ? requestPayload
+                : JsonDocument.Parse("null").RootElement;
 
-            // todo: use model?
-            var type = doc.RootElement.GetProperty("type").GetString();
-            var requestId = doc.RootElement.GetProperty("requestId").GetString();
-            var payload = doc.RootElement.GetProperty("payload");
-
-            var result = await _handlerRegistry.Invoke(type, payload);
+            object result = null;
+            object error = null;
+            try
+            {
+                result = await _handlerRegistry.Invoke(type, payload);
+            }
+            catch (Exception ex)
+            {
+                error = new { code = "handler_error", message = ex.Message };
+            }
 
             var response = new
             {
-                type = type + "Response",
+                type,
                 requestId,
-                payload = result
+                payload = result,
+                error
             };
 
-            var responseJson = JsonSerializer.Serialize(response);
+            var responseJson = JsonSerializer.Serialize(response, JsonOptions);
 
             await SendAsync(responseJson);
         }

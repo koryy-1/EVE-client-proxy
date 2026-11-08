@@ -7,6 +7,7 @@ namespace Application.Services
 {
     public class HandlerRegistry
     {
+        private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
         private readonly Dictionary<string, Func<JsonElement, Task<object>>> _handlers;
         public HandlerRegistry(
             GameClient gameClient,
@@ -23,12 +24,12 @@ namespace Application.Services
             {
                 ["GameClient.IsEveClientOpen"] = payload =>
                 {
-                    var nickname = payload.GetProperty("nickname").GetString();
+                    var nickname = payload.Deserialize<string>(JsonOptions);
                     return Task.FromResult<object>(gameClient.IsEveClientOpen(nickname));
                 },
                 ["GameClient.SetNickname"] = payload =>
                 {
-                    var nickname = payload.GetProperty("nickname").GetString();
+                    var nickname = payload.Deserialize<string>(JsonOptions);
                     gameClient.SetNickname(nickname);
                     return Task.FromResult<object>(true);
                 },
@@ -38,7 +39,7 @@ namespace Application.Services
                 ["GameClient.CheckRootAddressActuality"] = payload => Task.FromResult<object>(gameClient.CheckRootAddressActuality()),
                 ["GameClient.UpdateClientParams"] = payload =>
                 {
-                    var clientParamsDto = payload.GetProperty("clientParamsDto").Deserialize<ClientParamsDto>();
+                    var clientParamsDto = payload.Deserialize<ClientParamsDto>(JsonOptions);
                     var clientParams = gameClient.Dto2ClientParams(clientParamsDto);
                     return Task.FromResult<object>(gameClient.SetClientParams(clientParams));
                 },
@@ -62,7 +63,7 @@ namespace Application.Services
                 ["HudInterfaceService.SetFullSpeed"] = payload => Task.FromResult<object>(hudInterfaceService.SetFullSpeed()),
                 ["HudInterfaceService.ToggleActivationModule"] = payload =>
                 {
-                    var moduleName = payload.GetProperty("moduleName").GetString();
+                    var moduleName = payload.Deserialize<string>(JsonOptions);
                     return Task.FromResult<object>(hudInterfaceService.ToggleActivationModule(moduleName));
                 },
 
@@ -79,17 +80,17 @@ namespace Application.Services
                 ["OverViewService.GetOverViewInfo"] = payload => Task.FromResult<object>(overViewService.GetInfo()),
                 ["OverViewService.ClickOnObject"] = payload =>
                 {
-                    var spaceObject = payload.GetProperty("spaceObject").Deserialize<OverviewItem>();
+                    var spaceObject = payload.Deserialize<OverviewItem>(JsonOptions);
                     return Task.FromResult<object>(overViewService.ClickOnObject(spaceObject));
                 },
                 ["OverViewService.LockTargets"] = payload =>
                 {
-                    var targets = payload.GetProperty("targets").Deserialize<IEnumerable<OverviewItem>>();
+                    var targets = payload.Deserialize<IEnumerable<OverviewItem>>(JsonOptions);
                     return Task.FromResult<object>(overViewService.LockTargets(targets));
                 },
                 ["OverViewService.LockTargetByName"] = payload =>
                 {
-                    var targetName = payload.GetProperty("targetName").GetString();
+                    var targetName = payload.Deserialize<string>(JsonOptions);
                     return Task.FromResult<object>(overViewService.LockTargetByName(targetName));
                 },
 
@@ -97,7 +98,7 @@ namespace Application.Services
                 ["ProbeScannerService.GetProbeScanResults"] = payload => Task.FromResult<object>(probeScannerService.GetInfo()),
                 ["ProbeScannerService.WarpToAnomaly"] = payload =>
                 {
-                    var probeScanItem = payload.GetProperty("probeScanItem").Deserialize<ProbeScanItem>();
+                    var probeScanItem = payload.Deserialize<ProbeScanItem>(JsonOptions);
                     return Task.FromResult<object>(probeScannerService.WarpToAnomaly(probeScanItem));
                 },
 
@@ -105,7 +106,7 @@ namespace Application.Services
                 ["SelectItemService.GetSelectItemInfo"] = payload => Task.FromResult<object>(selectItemService.GetInfo()),
                 ["SelectItemService.ClickButton"] = payload =>
                 {
-                    var btnName = payload.GetProperty("btnName").GetString();
+                    var btnName = payload.Deserialize<string>(JsonOptions);
                     return Task.FromResult<object>(selectItemService.ClickButton(btnName));
                 },
             };
