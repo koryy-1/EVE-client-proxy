@@ -81,13 +81,8 @@ namespace Application.Services
             if (module == null)
                 return false;
 
-            // Check immediately before sending the hotkey: EVE may interpret a
-            // held modifier as a different rack or modified command.
-            if (_client.Emulators.Keyboard.IsAnyModifierKeyDown())
-                return false;
-
-            _client.Emulators.Keyboard.PressButton(module.VirtualKey);
-            return true;
+            // EVE may interpret a held modifier as a different rack or command.
+            return _client.Emulators.Keyboard.TryPressButton(module.VirtualKey);
         }
     }
 }

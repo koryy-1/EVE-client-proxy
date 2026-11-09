@@ -10,10 +10,14 @@ namespace Application.ClientWindow
     public class Keyboard
     {
         private IntPtr _hWnd;
+        private readonly Func<int, short> _getAsyncKeyState;
+        private readonly Action<int>? _buttonSender;
 
-        public Keyboard(IntPtr hWnd)
+        public Keyboard(IntPtr hWnd, Func<int, short>? getAsyncKeyState = null, Action<int>? buttonSender = null)
         {
             _hWnd = hWnd;
+            _getAsyncKeyState = getAsyncKeyState ?? WinApi.GetAsyncKeyState;
+            _buttonSender = buttonSender;
         }
 
         public void PressButton(int Button)
@@ -30,9 +34,22 @@ namespace Application.ClientWindow
                 || IsKeyDown(WinApi.VirtualKeyShort.VK_SHIFT, KeyDownMask);
         }
 
-        private static bool IsKeyDown(WinApi.VirtualKeyShort key, short keyDownMask)
+        public bool TryPressButton(int button)
         {
-            return (WinApi.GetAsyncKeyState((int)key) & keyDownMask) != 0;
+            if (IsAnyModifierKeyDown())
+                return false;
+
+            if (_buttonSender != null)
+                _buttonSender(button);
+            else
+                PressButton(button);
+
+            return true;
+        }
+
+        private bool IsKeyDown(WinApi.VirtualKeyShort key, short keyDownMask)
+        {
+            return (_getAsyncKeyState((int)key) & keyDownMask) != 0;
         }
 
         public void KeyDown(int Button)
