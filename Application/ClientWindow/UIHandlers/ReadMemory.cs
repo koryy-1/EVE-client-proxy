@@ -985,6 +985,9 @@ namespace Application.ClientWindow.UIHandlers
         [DllImport("user32.dll")]
         public static extern bool GetCursorPos(out Point lpPoint);
 
+        [DllImport("user32.dll")]
+        public static extern short GetAsyncKeyState(int virtualKey);
+
         static public int MakeLParam(int LoWord, int HiWord)
         {
             return (int)((HiWord << 16) | (LoWord & 0xFFFF));
@@ -1115,6 +1118,8 @@ namespace Application.ClientWindow.UIHandlers
             LBUTTON = 0x01,
             RBUTTON = 0x02,
             VK_CONTROL = 0x11,
+            VK_MENU = 0x12, // ALT
+            VK_SHIFT = 0x10,
             VK_F = 0x46,
             VK_G = 0x47,
             VK_H = 0x48,

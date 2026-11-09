@@ -1,4 +1,5 @@
 ﻿using Application.ClientWindow;
+using Application.ClientWindow.UIHandlers;
 using Domen.Models;
 using System;
 using System.Collections.Generic;
@@ -78,6 +79,11 @@ namespace Application.Services
             var module = _client.Parser.HI.GetAllModulesInfo()
                 .Find(item => item.Name.ToString() == moduleName);
             if (module == null)
+                return false;
+
+            // Check immediately before sending the hotkey: EVE may interpret a
+            // held modifier as a different rack or modified command.
+            if (_client.Emulators.Keyboard.IsAnyModifierKeyDown())
                 return false;
 
             _client.Emulators.Keyboard.PressButton(module.VirtualKey);

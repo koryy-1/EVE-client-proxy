@@ -19,18 +19,38 @@ namespace Application.ClientWindow
 
         public void ClickLB(Point point)
         {
-            WinApi.PostMessage(_hWnd, (uint)WinApi.MouseMessages.WM_LBUTTONDOWN, (int)WinApi.VirtualKeyShort.LBUTTON, WinApi.MakeLParam(point.x, point.y));
-            Thread.Sleep(100);
-            WinApi.PostMessage(_hWnd, (uint)WinApi.MouseMessages.WM_LBUTTONUP, (int)WinApi.VirtualKeyShort.LBUTTON, WinApi.MakeLParam(point.x, point.y));
-            Thread.Sleep(100);
+            Move(point);
+            PostMouse(WinApi.MouseMessages.WM_LBUTTONDOWN, (int)WinApi.VirtualKeyShort.LBUTTON, point);
+            Thread.Sleep(50);
+            PostMouse(WinApi.MouseMessages.WM_LBUTTONUP, 0, point);
         }
 
         public void ClickRB(Point point)
         {
-            WinApi.PostMessage(_hWnd, (uint)WinApi.MouseMessages.WM_RBUTTONDOWN, (int)WinApi.VirtualKeyShort.RBUTTON, WinApi.MakeLParam(point.x, point.y));
-            Thread.Sleep(100);
-            WinApi.PostMessage(_hWnd, (uint)WinApi.MouseMessages.WM_RBUTTONUP, (int)WinApi.VirtualKeyShort.RBUTTON, WinApi.MakeLParam(point.x, point.y));
-            Thread.Sleep(100);
+            Move(point);
+            PostMouse(WinApi.MouseMessages.WM_RBUTTONDOWN, (int)WinApi.VirtualKeyShort.RBUTTON, point);
+            Thread.Sleep(50);
+            PostMouse(WinApi.MouseMessages.WM_RBUTTONUP, 0, point);
+        }
+
+        // TODO: need to masking moving virt cursor?
+        public void Move(Point point) => PostMouse(WinApi.MouseMessages.WM_MOUSEMOVE, 0, point);
+
+        public void Drag(int downX, int downY, int upX, int upY)
+        {
+            var down = new Point { x = downX, y = downY };
+            var up = new Point { x = upX, y = upY };
+            Move(down);
+            PostMouse(WinApi.MouseMessages.WM_LBUTTONDOWN, (int)WinApi.VirtualKeyShort.LBUTTON, down);
+            Thread.Sleep(50);
+            Move(up);
+            PostMouse(WinApi.MouseMessages.WM_LBUTTONUP, 0, up);
+        }
+
+        private void PostMouse(WinApi.MouseMessages message, int buttonState, Point point)
+        {
+            if (!WinApi.PostMessage(_hWnd, (uint)message, buttonState, WinApi.MakeLParam(point.x, point.y)))
+                throw new InvalidOperationException($"PostMessage({message}) failed; Win32 error {System.Runtime.InteropServices.Marshal.GetLastWin32Error()}.");
         }
     }
 }
